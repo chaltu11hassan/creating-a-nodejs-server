@@ -13,7 +13,7 @@ const http = require("http");
 
 //or you can use an arrow function
 const server = http.createServer((req, res) => {
-  console.log(req);
+  console.log(req.url, req.method, req.headers);
 //   process.exit(); //hard exit: quits the process
 });
 
