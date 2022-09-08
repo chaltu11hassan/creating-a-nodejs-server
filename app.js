@@ -8,6 +8,7 @@ const http = require("http");
 //fs= file systems
 
 const fs = require("fs");
+const { brotliDecompressSync } = require("zlib");
 
 //you can use an expression function
 // function rqListener(req, res) {};
@@ -36,18 +37,34 @@ const server = http.createServer((req, res) => {
   }
 
   if (url === "/message" && method === "POST") {
-    //redirect user and add message
+    const body = [];
 
-    fs.writeFileSync("message.txt", "DUMMY");
+    //listens for data
+    req.on("data", (chunk) => {
+      console.log(chunk);
+      body.push(chunk);
+    });
 
-    // 302: redirect code
-    res.statusCode = 302;
-    res.setHeader("Location", "/");
-    return res.end();
+    //need a place to interact with data
+    return req.on("end", () => {
+      //listener
+      const parsedBody = Buffer.concat(body).toString();
+      //toString bc input type was text
+
+      //console.log(parsedBody);
+      const message = parsedBody.split("=")[1];
+
+      //redirect user
+      fs.writeFileSync("message.txt", message);
+
+      // 302: redirect code
+      res.statusCode = 302;
+      res.setHeader("Location", "/");
+      return res.end();
+    });
   }
 
   res.setHeader("Content-Type", "text/html");
-
   res.write("<html>");
   res.write("<head><title>My First Page</title><head>");
   res.write("<body><h1>Hello from my Node.js server</h1></body>");
@@ -60,3 +77,7 @@ server.listen(3001);
 
 //*what we just did:
 //executed node app.js => started script => parse code/register variables & functions => (node app)event loop =>(continous listening) => process.exit (stops listening)
+
+//how do we get data from user input: use buffers(organizes requests in to chunks to work on)
+
+// asynchronous : a function is passed an annonymous function
